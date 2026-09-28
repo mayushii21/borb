@@ -2,7 +2,7 @@
 
 ## Prints
 
-- [`dartyl/prints/`](dartyl/prints/): left/right cases, bottoms, and USB-C Pro Micro holders—one of each per hand.
+- [`dartyl/prints/`](dartyl/prints/): left/right cases, bottoms, and USB-C controller holders—one of each per hand.
 - [`lever-keycaps/prints/`](lever-keycaps/prints/): left/right bases and left/right paddles in both 15 mm and angled 17 mm versions. Each lever uses one base, one paddle, and a 0.7 mm metal hinge pin.
 
 ## Source and original instructions
@@ -13,5 +13,11 @@
 The original Dartyl instructions describe the 34-key version. This version adds a third thumb key per hand, reduces ring/pinky splay, and adds Choc V1 hotswap cases with M4-attached bottoms. The lever print files include mirrored left/right paddles derived from the original CAD.
 
 Use OpenSCAD's CGAL backend when exporting the USB holder source.
+
+## Controller and wiring
+
+Use two [Elite-Pi](https://docs.keeb.io/elite-pi-guide) RP2040 controllers (2 MB flash). They nominally fit the included Elite-C holders, though this has not been test-fitted.
+
+Wire each half's 18 switches directly, plus split data; no matrix diodes are needed. Connect the added thumb switch to a free pin on the [Elite-Pi pinout](https://docs.keeb.io/elite-pi-guide#pinout) and assign it in firmware.
 
 Sources: [diniamo/dometyl-keyboard](https://github.com/diniamo/dometyl-keyboard) (`ade9e48`) and [dohn-joh/keycaps](https://github.com/dohn-joh/keycaps) (`b596da8`).
