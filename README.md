@@ -10,7 +10,7 @@
 - [Dartyl source](dartyl/source/) · [holder source](dartyl/reference/things/boards/dartyl_choc/usb_holder.scad) · [left mirror](dartyl/source/usb_holder_left.scad) · [original Dartyl README](dartyl/reference/README.md) · [original Choc board instructions](dartyl/reference/things/boards/dartyl_choc/README.md)
 - [Lever source](lever-keycaps/source/) · [original lever instructions](lever-keycaps/reference/README.md)
 
-The original Dartyl instructions describe the 34-key version. This version adds a third thumb key per hand, reduces ring/pinky splay, and adds Choc V1 hotswap cases with M4-attached bottoms. The lever print files include mirrored left/right paddles derived from the original CAD.
+The original Dartyl instructions describe the 34-key version. This version adds a third thumb key per hand, replaces the curved thumb-to-index base wall (which has no room beside the added key and generated no solid) with a straight one that the bottom plate follows, reduces ring/pinky splay, and adds Choc V1 hotswap cases with M4-attached bottoms. The lever print files include mirrored left/right paddles derived from the original CAD.
 
 Use OpenSCAD's CGAL backend when exporting the USB holder source.
 

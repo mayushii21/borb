@@ -29,6 +29,26 @@ let prism_exn a b =
     let faces =
       List.range 0 n :: List.range ~stride:(-1) ((n * 2) - 1) (n - 1) :: sides
     in
+    (* Callers can pass [a] with the opposite winding (e.g. when two walls cross
+       over each other), which yields an inside-out polyhedron with no printable
+       volume. Measure the signed volume and reverse the faces if needed. *)
+    let faces =
+      let pa = Array.of_list pts in
+      let signed_volume =
+        List.fold faces ~init:0. ~f:(fun acc face ->
+            match face with
+            | i0 :: rest ->
+              let p0 = pa.(i0) in
+              let rec fan acc = function
+                | i1 :: (i2 :: _ as tl) ->
+                  fan (acc +. Vec3.dot p0 (Vec3.cross pa.(i1) pa.(i2))) tl
+                | _ -> acc
+              in
+              fan acc rest
+            | [] -> acc )
+      in
+      if Float.(signed_volume > 0.) then List.map ~f:List.rev faces else faces
+    in
     Scad.polyhedron pts faces )
   else failwith "Faces must have equal number of vertices."
 

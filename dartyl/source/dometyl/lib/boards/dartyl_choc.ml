@@ -34,21 +34,73 @@ let wall_builder plate =
           plate
     }
 
-let base_connector =
-  Connect.skeleton
-    ~height:6.
-    ~thumb_height:9.5
-    ~east_link:(Connect.snake ~height:11. ~scale:1.25 ~d:5. ())
-    ~west_link:(Connect.straight ())
-    ~cubic_d:3.
-    ~cubic_scale:1.
-    ~index_height:20.
-    ~thumb_join_steps:(`Flat 14)
-    ~body_join_steps:(`Flat 10)
-    ~fudge_factor:10.
-    ~north_joins:(fun i -> i < 2)
-    ~close_thumb:true
-    ~south_joins:(fun _ -> false)
+(* With the third thumb key, the end wall of the thumb cluster overlaps the index
+   column's south wall, so the east link has to cross diagonally between them.
+   The original snake link degenerates there; a straight link (made solid by the
+   orientation check in [Util.prism_exn]) closes the gap. *)
+let east_link = Connect.straight ~height:11. ()
+
+(* The straight link reports only two corner points for the bottom-plate outline,
+   which lie inside its diagonal outer face. Route the outline along the link's
+   real outer face instead: from where it meets the index wall's outer face, to
+   its thumb-side foot, then around the end of the thumb wall. *)
+let fix_east_link_outline (walls : Walls.t) (connections : Connect.t) =
+  let index_wall = Option.map ~f:snd (Map.min_elt walls.body.south)
+  and thumb_wall =
+    (* Same choice as [Connect.manual]: first thumb east wall, else last south. *)
+    Option.map
+      ~f:snd
+      (Option.first_some (Map.min_elt walls.thumb.east) (Map.max_elt walls.thumb.south))
+  in
+  match index_wall, thumb_wall with
+  | Some (w1 : Wall.t), Some (w2 : Wall.t) ->
+    let link = Connect.connect east_link w1 w2 in
+    let link_start, link_end =
+      match link.inline with
+      | [ _; s; e ] -> s, e
+      | _ -> failwith "Unexpected east link inline points."
+    in
+    (* Intersection (in XY) of the link's outer face with the index wall's outer
+       face. *)
+    let meet =
+      let x1, y1, _ = link_start
+      and x2, y2, _ = link_end
+      and x3, y3, _ = w1.foot.top_left
+      and x4, y4, _ = w1.foot.top_right in
+      let den = ((x1 -. x2) *. (y3 -. y4)) -. ((y1 -. y2) *. (x3 -. x4)) in
+      let t = (((x1 -. x3) *. (y3 -. y4)) -. ((y1 -. y3) *. (x3 -. x4))) /. den in
+      x1 +. (t *. (x2 -. x1)), y1 +. (t *. (y2 -. y1)), 0.
+    in
+    let hits = List.count connections.outline ~f:(Poly.equal w1.foot.top_right) in
+    if hits <> 1 then failwith "East link outline corner not found exactly once.";
+    let outline =
+      List.concat_map connections.outline ~f:(fun p ->
+          if Poly.equal p w1.foot.top_right
+          then [ meet; link_end; w2.foot.bot_left ]
+          else [ p ] )
+    in
+    { connections with outline }
+  | _ -> connections
+
+let base_connector (walls : Walls.t) =
+  let connections =
+    Connect.skeleton
+      ~height:6.
+      ~thumb_height:9.5
+      ~east_link
+      ~west_link:(Connect.straight ())
+      ~cubic_d:3.
+      ~cubic_scale:1.
+      ~index_height:20.
+      ~thumb_join_steps:(`Flat 14)
+      ~body_join_steps:(`Flat 10)
+      ~fudge_factor:10.
+      ~north_joins:(fun i -> i < 2)
+      ~close_thumb:true
+      ~south_joins:(fun _ -> false)
+      walls
+  in
+  fix_east_link_outline walls connections
 
 let body_lookups =
   let offset = function
